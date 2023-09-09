@@ -1,0 +1,16 @@
+version: '3'
+services:
+  mysql:
+    image: mysql:8.0.29
+    container_name: mysql
+    platform: linux/x86_64
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: reversi
+      MYSQL_USER: test
+      MYSQL_PASSWORD: password
+    ports:
+      - 3306:3306
+    volumes:
+      - ./mysql:/var/lib/mysql
