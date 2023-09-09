@@ -1,0 +1,1 @@
+docker compose exec mysql mysql -u test --user=test --password=password reversi
