@@ -33,13 +33,7 @@ app.get("/api/error", (req, res) => {
 app.post("/api/games", async (req, res) => {
   const now = new Date();
 
-  const conn = await mysql.createConnection({
-    host: "localhost",
-    database: "reversi",
-    user: "test",
-    password: "password",
-  });
-
+  const conn = await connectDB();
   try {
     await conn.beginTransaction();
 
@@ -83,6 +77,55 @@ app.post("/api/games", async (req, res) => {
   res.json({ message: "Game created" });
 });
 
+app.get("/api/games/latest/turns/:turnCount", async (req, res) => {
+  const { turnCount } = req.params;
+
+  const conn = await connectDB();
+  try {
+    // 最新の対戦を取得
+    const gameSelectResult = await conn.execute<mysql.RowDataPacket[]>(
+      "SELECT id, started_at FROM games ORDER BY id DESC LIMIT 1",
+      [turnCount]
+    );
+
+    const game = gameSelectResult[0][0];
+
+    const turnSelectResult = await conn.execute<mysql.RowDataPacket[]>(
+      "SELECT * FROM turns WHERE game_id = ? turn_count = ?",
+      [game.id, turnCount]
+    );
+
+    const turn = turnSelectResult[0][0];
+
+    const squareSelectResult = await conn.execute<mysql.RowDataPacket[]>(
+      "SELECT id, turn_id, x, y, disc FROM squares WHERE turn_id = ?",
+      [turn.id]
+    );
+
+    const squares = squareSelectResult[0];
+
+    const board: any[][] = Array.from(Array(8)).map(() =>
+      Array.from(Array(8)).map(() => EMPTY)
+    );
+
+    squares.forEach((square) => {
+      board[square.y][square.x] = square.disc;
+    });
+
+    const responseBody = {
+      turnCount: turn.turn_count,
+      board,
+      nextDisc: turn.next_disc,
+      // TODO: winnerDisc 勝敗が決まっていない場合は null
+      winnerDisc: null,
+    };
+
+    res.json(responseBody);
+  } finally {
+    await conn.end();
+  }
+});
+
 app.use(
   (
     err: Error,
@@ -98,3 +141,12 @@ app.use(
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
+
+async function connectDB() {
+  return await mysql.createConnection({
+    host: "localhost",
+    database: "reversi",
+    user: "test",
+    password: "password",
+  });
+}
