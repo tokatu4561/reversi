@@ -1,0 +1,1 @@
+cat mysql/init.sql | docker compose exec -T mysql mysql -u test --user=test --password=password

@@ -42,6 +42,14 @@ async function showBoard() {
   })
 }
 
+async function registerGame() {
+  const response = await fetch('/api/games', {
+    method: 'POST'
+  })
+  const game = await response.json()
+  console.log(game)
+}
+
 async function main() {
   await showBoard()
 }
