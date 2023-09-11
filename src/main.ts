@@ -2,6 +2,7 @@ import express from "express";
 import morgan from "morgan";
 import mysql from "mysql2/promise";
 import "express-async-errors";
+import { GameGateway } from "./data/gameGateway";
 
 const PORT = 3000;
 
@@ -17,6 +18,8 @@ const INITIAL_BOARD = [
   [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
   [EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY],
 ];
+
+const gameGateway = new GameGateway();
 
 app.use(morgan("dev"));
 app.use(express.static("public", { extensions: ["html"] }));
@@ -37,16 +40,11 @@ app.post("/api/games", async (req, res) => {
   try {
     await conn.beginTransaction();
 
-    const gameInsertResult = await conn.execute<mysql.ResultSetHeader>(
-      "INSERT INTO games (started_at) VALUES (?)",
-      [now]
-    );
-
-    const gameId = gameInsertResult[0].insertId;
+    const gameRecord = await gameGateway.insert(conn, now);
 
     const turnInsertResult = await conn.execute<mysql.ResultSetHeader>(
       "INSERT INTO turns (game_id, turn_count, next_disc, end_at) VALUES (?, ?, ?, ?)",
-      [gameId, 0, DARK, now]
+      [gameRecord.id, 0, DARK, now]
     );
 
     const turnId = turnInsertResult[0].insertId;
@@ -83,16 +81,11 @@ app.get("/api/games/latest/turns/:turnCount", async (req, res) => {
   const conn = await connectDB();
   try {
     // 最新の対戦を取得
-    const gameSelectResult = await conn.execute<mysql.RowDataPacket[]>(
-      "SELECT id, started_at FROM games ORDER BY id DESC LIMIT 1",
-      [turnCount]
-    );
-
-    const game = gameSelectResult[0][0];
+    const gameRecord = await gameGateway.findLatest(conn);
 
     const turnSelectResult = await conn.execute<mysql.RowDataPacket[]>(
       "SELECT * FROM turns WHERE game_id = ? turn_count = ?",
-      [game.id, turnCount]
+      [gameRecord.id, turnCount]
     );
 
     const turn = turnSelectResult[0][0];
@@ -124,6 +117,37 @@ app.get("/api/games/latest/turns/:turnCount", async (req, res) => {
   } finally {
     await conn.end();
   }
+});
+
+// ターン(盤面)を保存する　ターンを進める
+app.post("/api/games/latest/turns", async (req, res) => {
+  const {
+    turnCount,
+    move: { disc, x, y },
+  } = req.body;
+
+  const conn = await connectDB();
+
+  const prevTurnCount = turnCount - 1;
+  // １つ前のターンを取得する
+  //   const prevTurnSelectResult = await conn.execute<mysql.RowDataPacket[]>(
+  //     "SELECT * FROM turns WHERE game_id = ? turn_count = ?",
+  //     [game.id, prevTurnCount]
+  //   );
+
+  // 盤面に置けるかチェックする
+
+  // 石を置く
+
+  // ターンを保存する 進める
+
+  try {
+    await conn.beginTransaction();
+  } finally {
+    await conn.end();
+  }
+
+  res.status(201).json({ message: "Turn created" });
 });
 
 app.use(
