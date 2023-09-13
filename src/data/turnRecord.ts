@@ -10,4 +10,17 @@ export class TurnRecord {
   get id() {
     return this._id;
   }
+
+  get gameId() {
+    return this._gameId;
+  }
+
+  get turnCount() {
+    return this._turnCount;
+  }
+
+  get nextDisc() {
+    return this._nextDisc;
+  }
+  
 }
