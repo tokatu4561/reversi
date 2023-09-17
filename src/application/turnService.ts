@@ -4,6 +4,10 @@ import { GameGateway } from "../data/gameGateway";
 import { MoveGateway } from "../data/moveGateway";
 import { SquareGateway } from "../data/squareGateway";
 import { TurnGateway } from "../data/turnGateway";
+import { Board } from "../domain/board";
+import { toDisc } from "../domain/disc";
+import { Point } from "../domain/point";
+import { Turn } from "../domain/turn";
 
 const gameGateway = new GameGateway();
 const turnGateway = new TurnGateway();
@@ -108,25 +112,26 @@ export class TurnService {
         board[s.y][s.x] = s.disc;
       });
 
-      // TODO 盤面に置けるかチェック
+      const prevTurn = new Turn(
+        gameRecord.id,
+        previousTurnCount,
+        toDisc(previousTurnRecord.nextDisc),
+        undefined,
+        new Board(board),
+        previousTurnRecord.endAt!
+      );
 
-      // 石を置く
-      board[y][x] = disc;
-
-      // TODO ひっくり返す
+      const newTurn = prevTurn.placeNext(toDisc(disc), new Point(x, y));
 
       // ターンを保存する
-      const nextDisc = disc === DARK ? LIGHT : DARK;
-      const now = new Date();
-
       const turnRecord = await turnGateway.insert(
         conn,
-        gameRecord.id,
-        turnCount,
-        nextDisc,
-        now
+        newTurn.gameId,
+        newTurn.turnCount,
+        newTurn.nextDisc,
+        newTurn.endAt
       );
-      await squareGateway.insertAll(conn, turnRecord.id, board);
+      await squareGateway.insertAll(conn, turnRecord.id, newTurn.board.discs);
       await moveGateway.insert(conn, turnRecord.id, disc, x, y);
 
       await conn.commit();
