@@ -1,5 +1,5 @@
-import { connectDB } from "../data/connection";
-import { GameGateway } from "../data/gameGateway";
+import { connectDB } from "../infrastructure/connection";
+import { GameGateway } from "../infrastructure/gameGateway";
 import { toDisc } from "../domain/disc";
 import { GameRepository } from "../domain/gameRepository";
 import { Point } from "../domain/point";

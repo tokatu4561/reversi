@@ -1,4 +1,4 @@
-import { connectDB } from "../data/connection";
+import { connectDB } from "../infrastructure/connection";
 import { Game } from "../domain/game";
 import { GameRepository } from "../domain/gameRepository";
 import { firstTurn } from "../domain/turn";
