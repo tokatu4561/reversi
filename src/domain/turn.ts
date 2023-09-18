@@ -10,7 +10,7 @@ export class Turn {
     private _nextDisc: Disc,
     private _move: Move | undefined,
     private _board: Board,
-    private _endAt: Date
+    private _endAt: Date | undefined
   ) {}
 
   get gameId() {
