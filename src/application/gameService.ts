@@ -1,17 +1,14 @@
-import { DARK, INITIAL_BOARD } from "../application/constants";
 import { connectDB } from "../data/connection";
-import { GameGateway } from "../data/gameGateway";
-import { SquareGateway } from "../data/squareGateway";
-import { TurnGateway } from "../data/turnGateway";
+import { Game } from "../domain/game";
+import { GameRepository } from "../domain/gameRepository";
+import { firstTurn } from "../domain/turn";
+import { TurnRepository } from "../domain/turnRepository";
 
-const gameGateway = new GameGateway();
-const turnGateway = new TurnGateway();
-const squareGateway = new SquareGateway();
+const turnRepository = new TurnRepository();
+const gameRepository = new GameRepository();
 
 export class GameService {
-  constructor() {
-    console.log("GameService constructor");
-  }
+  constructor() {}
 
   public async startNewGame() {
     const now = new Date();
@@ -20,15 +17,14 @@ export class GameService {
     try {
       await conn.beginTransaction();
 
-      const gameRecord = await gameGateway.insert(conn, now);
-      const turnRecord = await turnGateway.insert(
-        conn,
-        gameRecord.id,
-        0,
-        DARK,
-        now
-      );
-      await squareGateway.insertAll(conn, turnRecord.id, INITIAL_BOARD);
+      const game = await gameRepository.save(conn, new Game(undefined, now));
+      if (!game.id) {
+        throw new Error("Game id is undefined");
+      }
+
+      const turn = firstTurn(game.id, now);
+
+      await turnRepository.save(conn, turn);
 
       await conn.commit();
     } finally {

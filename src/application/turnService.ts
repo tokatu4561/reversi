@@ -1,7 +1,7 @@
-import { DARK, LIGHT } from "../application/constants";
 import { connectDB } from "../data/connection";
 import { GameGateway } from "../data/gameGateway";
 import { toDisc } from "../domain/disc";
+import { GameRepository } from "../domain/gameRepository";
 import { Point } from "../domain/point";
 import { TurnRepository } from "../domain/turnRepository";
 
@@ -33,6 +33,7 @@ class FindLatestGameTurnByTurnCountOutput {
 }
 
 const turnRepository = new TurnRepository();
+const gameRepository = new GameRepository();
 
 export class TurnService {
   constructor() {}
@@ -42,14 +43,14 @@ export class TurnService {
   ): Promise<FindLatestGameTurnByTurnCountOutput> {
     const conn = await connectDB();
     try {
-      const gameRecord = await gameGateway.findLatest(conn);
-      if (!gameRecord) {
-        throw new Error("Latest game not found");
+      const game = await gameRepository.findLatest(conn);
+      if (!game.id) {
+        throw new Error("Game id is undefined");
       }
 
       const turn = await turnRepository.findForGameIdAndTurnCount(
         conn,
-        gameRecord.id,
+        game.id,
         turnCount
       );
 
