@@ -1,9 +1,9 @@
 import { connectDB } from "../infrastructure/connection";
 import { GameGateway } from "../infrastructure/gameGateway";
-import { toDisc } from "../domain/disc";
-import { GameRepository } from "../domain/gameRepository";
-import { Point } from "../domain/point";
-import { TurnRepository } from "../domain/turnRepository";
+import { toDisc } from "../domain/turn/disc";
+import { GameRepository } from "../domain/game/gameRepository";
+import { Point } from "../domain/turn/point";
+import { TurnRepository } from "../domain/turn/turnRepository";
 
 const gameGateway = new GameGateway();
 
