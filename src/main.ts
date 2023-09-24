@@ -3,6 +3,9 @@ import morgan from "morgan";
 import "express-async-errors";
 import { gameRouter } from "./presentation/gameRouter";
 import { turnRouter } from "./presentation/turnRouter";
+import { DomainError } from "./domain/error/DomainError";
+import { AppError } from "./application/error/AppError";
+import { NotFoundLatestGame } from "./application/error/NotFoundLatestGame";
 
 const PORT = 3000;
 
@@ -22,6 +25,24 @@ app.use(
     res: express.Response,
     next: express.NextFunction
   ) => {
+    if (err instanceof DomainError) {
+      res.status(400).json({
+        type: err.type,
+        message: err.message,
+      });
+      return;
+    }
+
+    if (err instanceof AppError) {
+      if (err instanceof NotFoundLatestGame) {
+        res.status(404).json({
+          type: err.type,
+          message: err.message,
+        });
+        return;
+      }
+    }
+
     console.error(err);
     res.status(500).json({ message: "Something went wrong" });
   }
