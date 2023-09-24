@@ -16,8 +16,8 @@ async function showBoard(turnCount = 0) {
   }
 
   // 盤面描画
-  board.forEach((line) => {
-    line.forEach((square) => {
+  board.forEach((line, y) => {
+    line.forEach((square, x) => {
       // <div class="square">
       const squareElement = document.createElement("div");
       squareElement.className = "square";
@@ -64,16 +64,14 @@ async function registerTurn(turnCount, disc, x, y) {
 }
 
 async function registerGame() {
-  const response = await fetch("/api/games", {
+  await fetch("/api/games", {
     method: "POST",
   });
-  const game = await response.json();
-  console.log(game);
 }
 
 async function main() {
-  await showBoard(0);
   await registerGame();
+  await showBoard(0);
 }
 
 main();

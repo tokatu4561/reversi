@@ -66,7 +66,7 @@ export class TurnService {
     }
   }
 
-  async registerTurn(turnCount: number, disc, x, y: number) {
+  async registerTurn(turnCount: number, disc: number, x: number, y: number) {
     const conn = await connectDB();
     try {
       await conn.beginTransaction();
