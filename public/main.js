@@ -3,12 +3,15 @@ const DARK = 1;
 const LIGHT = 2;
 
 const boardElement = document.getElementById("board");
+const nextDiscMessageElement = document.getElementById("next-disc-message");
 
 async function showBoard(turnCount = 0) {
   const response = await fetch(`/api/games/latest/turns/${turnCount}`);
   const responseBody = await response.json();
   const board = responseBody.board;
   const nextDisc = responseBody.nextDisc;
+
+  showNextDiscMessage(nextDisc);
 
   // 盤面初期化 (子要素を全て削除)
   while (boardElement.firstChild) {
@@ -41,6 +44,15 @@ async function showBoard(turnCount = 0) {
       boardElement.appendChild(squareElement);
     });
   });
+}
+
+function showNextDiscMessage(nextDisc) {
+  if (nextDisc) {
+    const color = nextDisc === DARK ? "黒" : "白";
+    nextDiscMessageElement.innerText = `次は${color}の番です`;
+  } else {
+    nextDiscMessageElement.innerText = "";
+  }
 }
 
 // ターン(盤面)の状態を登録
