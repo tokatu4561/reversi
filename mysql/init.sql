@@ -21,19 +21,19 @@ create table games (
 
 create table turns (
     id int auto_increment,
-    game_id int unsigned not null,
+    game_id int not null,
     -- player_id int unsigned not null,
     turn_count int not null,
     next_disc int,
     end_at datetime not null,
-    primary key (id)
+    primary key (id),
     foreign key (game_id) references games(id),
     unique (game_id, turn_count)
 );
 
 create table moves (
     id int auto_increment,
-    turn_id int unsigned not null,
+    turn_id int not null,
     disc int not null,
     x int not null,
     y int not null,
@@ -43,7 +43,7 @@ create table moves (
 
 create table squares (
     id int auto_increment,
-    turn_id int unsigned not null,
+    turn_id int not null,
     x int not null,
     y int not null,
     disc int not null,
@@ -54,7 +54,7 @@ create table squares (
 
 create table game_results (
     id int auto_increment,
-    game_id int unsigned not null,
+    game_id int not null,
     -- 勝者 プレイヤーのid 
     winner_id int unsigned not null,
     end_at datetime not null,
