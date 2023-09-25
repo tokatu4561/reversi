@@ -63,14 +63,16 @@ export class Board {
     walledX += xDirection;
     walledY += yDirection;
 
+    const tmpFlipPoints: Point[] = [];
     while (isOppositeDisc(move.disc, this._walledDiscs[walledY][walledX])) {
       // 番兵を考慮して - 1 する
-      flipPoints.push(new Point(walledX - 1, walledY - 1));
+      tmpFlipPoints.push(new Point(walledX - 1, walledY - 1));
       walledX += xDirection;
       walledY += yDirection;
       // 同じ色の石が見つかれば、ひっくり返す石のリストが確定
       if (move.disc === this._walledDiscs[walledY][walledX]) {
-        flipPoints.push(...flipPoints);
+        flipPoints.push(...tmpFlipPoints);
+        tmpFlipPoints.splice(0);
         break;
       }
     }
