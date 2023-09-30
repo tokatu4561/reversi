@@ -50,7 +50,7 @@ export class TurnRepository {
     return new Turn(
       gameId,
       turnCount,
-      toDisc(turnRecord.nextDisc),
+      turnRecord.nextDisc ? toDisc(turnRecord.nextDisc) : undefined,
       move,
       new Board(board),
       turnRecord.endAt
