@@ -148,6 +148,34 @@ export class Board {
 
     return walled;
   }
+
+  // existValidMove is used to check if a disc can be placed on the board
+  public existValidMove(disc: Disc): boolean {
+    for (let y = 0; y < this._discs.length; y++) {
+      const line = this._discs[y];
+
+      for (let x = 0; x < line.length; x++) {
+        const discOnBoard = line[x];
+
+        if (discOnBoard !== Disc.Empty) {
+          // 空でない場合は置けない
+          continue;
+        }
+
+        const point = new Point(x, y);
+        const move = new Move(disc, point);
+
+        const points = this.listFlipPoints(move);
+
+        if (points.length > 0) {
+          return true;
+        }
+      }
+    }
+
+    // 置ける場所が1つもない
+    return false;
+  }
 }
 
 const EMPTY = Disc.Empty;

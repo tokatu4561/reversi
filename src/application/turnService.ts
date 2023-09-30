@@ -57,7 +57,7 @@ export class TurnService {
       return new FindLatestGameTurnByTurnCountOutput(
         turnCount,
         turn.board.discs,
-        turn.nextDisc,
+        turn.nextDisc ?? null,
         // TODO 決着がついている場合、game_results テーブルから取得する
         null
       );
