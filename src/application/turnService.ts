@@ -4,6 +4,8 @@ import { toDisc } from "../domain/turn/disc";
 import { GameRepository } from "../domain/game/gameRepository";
 import { Point } from "../domain/turn/point";
 import { TurnRepository } from "../domain/turn/turnRepository";
+import { GameResult } from "../domain/gameResult/gameResult";
+import { GameResultRepository } from "../domain/gameResult/gameResultRepository";
 
 const gameGateway = new GameGateway();
 
@@ -34,6 +36,7 @@ class FindLatestGameTurnByTurnCountOutput {
 
 const turnRepository = new TurnRepository();
 const gameRepository = new GameRepository();
+const gameResultRepository = new GameResultRepository();
 
 export class TurnService {
   constructor() {}
@@ -53,6 +56,11 @@ export class TurnService {
         game.id,
         turnCount
       );
+
+      let gameResult: GameResult | undefined = undefined;
+      if (turn.gameEnd()) {
+        gameResult = await gameResultRepository.findForGameId(conn, game.id);
+      }
 
       return new FindLatestGameTurnByTurnCountOutput(
         turnCount,

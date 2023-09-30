@@ -79,6 +79,10 @@ export class Turn {
       return Disc.Light;
     }
   }
+
+  public gameEnd(): boolean {
+    return this.nextDisc === undefined;
+  }
 }
 
 export const firstTurn = (gameId: number, endAt: Date) => {
