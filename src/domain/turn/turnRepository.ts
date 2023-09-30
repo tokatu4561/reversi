@@ -7,6 +7,7 @@ import { Move } from "./move";
 import { Point } from "./point";
 import { toDisc } from "./disc";
 import { Board } from "./board";
+import { NotFoundTurn } from "./error/NotFoundTurn";
 
 const turnGateway = new TurnGateway();
 const moveGateway = new MoveGateway();
@@ -24,7 +25,7 @@ export class TurnRepository {
       turnCount
     );
     if (!turnRecord) {
-      throw new Error("Specified turn not found");
+      throw new NotFoundTurn("Specified turn not found");
     }
 
     const squareRecords = await squareGateway.findForTurnId(
