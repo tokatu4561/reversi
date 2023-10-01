@@ -1,37 +1,10 @@
 import mysql from "mysql2/promise";
 import { GameResult } from "./gameResult";
-import { toWinnerDisc } from "./winnerDisc";
-import { GameResultGateway } from "../../infrastructure/gameResultGateway";
 
-const gameResultGateway = new GameResultGateway();
-
-export class GameResultRepository {
-  async findForGameId(
+export interface GameResultRepositoryInterface {
+  findForGameId(
     conn: mysql.Connection,
     gameId: number
-  ): Promise<GameResult | undefined> {
-    const gameResultRecord = await gameResultGateway.findForGameId(
-      conn,
-      gameId
-    );
-
-    if (!gameResultRecord) {
-      return undefined;
-    }
-
-    return new GameResult(
-      gameResultRecord.gameId,
-      toWinnerDisc(gameResultRecord.winnerDisc),
-      gameResultRecord.endAt
-    );
-  }
-
-  async save(conn: mysql.Connection, gameResult: GameResult) {
-    await gameResultGateway.insert(
-      conn,
-      gameResult.gameId,
-      gameResult.winenrDisc,
-      gameResult.endAt
-    );
-  }
+  ): Promise<GameResult | undefined>;
+  save(conn: mysql.Connection, gameResult: GameResult): Promise<void>;
 }

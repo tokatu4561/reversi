@@ -4,7 +4,7 @@ export class TurnRecord {
     private _gameId: number,
     private _turnCount: number,
     private _nextDisc: number | undefined,
-    private _endAt: Date | undefined
+    private _endAt: Date
   ) {}
 
   get id() {

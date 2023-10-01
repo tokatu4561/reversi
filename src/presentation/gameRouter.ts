@@ -1,12 +1,18 @@
 import express from "express";
-import { GameService } from "../application/gameService";
+import { StartNewGameUseCase } from "../application/usecase/startNewGameUseCase";
+import { GameMySQLRepository } from "../infrastructure/repository/game/gameMySQLRepository";
+import { TurnMySQLRepository } from "../infrastructure/repository/turn/turnMySQLRepository";
 
 export const gameRouter = express.Router();
 
-const gameService = new GameService();
+// FIXME: これはDIコンテナでやるべき
+const startNewGameUseCase = new StartNewGameUseCase(
+  new GameMySQLRepository(),
+  new TurnMySQLRepository()
+);
 
 gameRouter.post("/api/games", async (req, res) => {
-  await gameService.startNewGame();
+  await startNewGameUseCase.execute();
 
   res.status(201).end();
 });

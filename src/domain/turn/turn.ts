@@ -1,3 +1,4 @@
+import { WinnerDisc } from "../gameResult/winnerDisc";
 import { Board, initialBoard } from "./board";
 import { Disc } from "./disc";
 import { CanNotPlaceDisc } from "./error/CanNotPlaceDisc";
@@ -11,7 +12,7 @@ export class Turn {
     private _nextDisc: Disc | undefined,
     private _move: Move | undefined,
     private _board: Board,
-    private _endAt: Date | undefined
+    private _endAt: Date
   ) {}
 
   get gameId() {
@@ -82,6 +83,19 @@ export class Turn {
 
   public gameEnd(): boolean {
     return this.nextDisc === undefined;
+  }
+
+  public winnerDisc(): WinnerDisc {
+    const darkCount = this.board.count(Disc.Dark);
+    const lightCount = this.board.count(Disc.Light);
+
+    if (darkCount === lightCount) {
+      return WinnerDisc.Draw;
+    } else if (darkCount > lightCount) {
+      return WinnerDisc.Dark;
+    } else {
+      return WinnerDisc.Light;
+    }
   }
 }
 

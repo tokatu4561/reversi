@@ -1,9 +1,11 @@
 import express from "express";
-import { TurnService } from "../application/turnService";
+import { FindLatestGameTurnByTurnCountUseCase } from "../application/usecase/findLatestGameTurnByTurnCountUseCase";
+import { TurnMySQLRepository } from "../infrastructure/repository/turn/turnMySQLRepository";
+import { GameMySQLRepository } from "../infrastructure/repository/game/gameMySQLRepository";
+import { GameResultMySQLRepository } from "../infrastructure/repository/gameResult/gameResultMySQLRepository";
+import { RegisterTurnUseCase } from "../application/usecase/registerTurnUsecase";
 
 export const turnRouter = express.Router();
-
-const turnService = new TurnService();
 
 interface TurnGatResponseBody {
   turnCount: number;
@@ -12,18 +14,34 @@ interface TurnGatResponseBody {
   winnerDisc: number | null;
 }
 
+// FIXME: これはDIコンテナでやるべき
+const findLatestGameTurnByTurnCountUseCase =
+  new FindLatestGameTurnByTurnCountUseCase(
+    new TurnMySQLRepository(),
+    new GameMySQLRepository(),
+    new GameResultMySQLRepository()
+  );
+
+const registerTurnUseCase = new RegisterTurnUseCase(
+  new TurnMySQLRepository(),
+  new GameMySQLRepository(),
+  new GameResultMySQLRepository()
+);
+
 turnRouter.get(
   "/api/games/latest/turns/:turnCount",
   async (req, res: express.Response<TurnGatResponseBody>) => {
     const turnCount = parseInt(req.params.turnCount);
 
-    const output = await turnService.findLatestGameTurnByTurnCount(turnCount);
+    const output = await findLatestGameTurnByTurnCountUseCase.execute(
+      turnCount
+    );
 
     const responseBody: TurnGatResponseBody = {
       turnCount: output.turnCount,
       board: output.board,
-      nextDisc: output.nextDisc,
-      winnerDisc: output.winnerDisc,
+      nextDisc: output.nextDisc ?? null,
+      winnerDisc: output.winnerDisc ?? null,
     };
 
     res.json(responseBody);
@@ -47,7 +65,7 @@ turnRouter.post(
     const x = req.body.move.x;
     const y = req.body.move.y;
 
-    await turnService.registerTurn(turnCount, disc, x, y);
+    await registerTurnUseCase.execute(turnCount, disc, x, y);
 
     res.status(201).end();
   }

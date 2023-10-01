@@ -15,6 +15,14 @@ export class Board {
     return this._discs;
   }
 
+  public count(disc: Disc): number {
+    return this._discs
+      .map((line) => {
+        return line.filter((discOnBoard) => discOnBoard === disc).length;
+      })
+      .reduce((v1, v2) => v1 + v2, 0);
+  }
+
   // place is used to place a disc on the board
   public place(move: Move): Board {
     // 空でない場合は置けない
