@@ -4,20 +4,26 @@ create database `reversi` default character set utf8mb4 collate utf8mb4_unicode_
 
 use `reversi`;
 
-create table games (
+create table players (
     id int auto_increment,
-    -- player1_id int unsigned not null,
-    -- player2_id int unsigned not null,
-    started_at datetime not null,
+    name varchar(255) not null,
     primary key (id)
 );
 
--- 後に実装
--- create table players (
---     id int auto_increment,
---     name varchar(255) not null,
---     primary key (id)
--- );
+create table rooms (
+    id int auto_increment,
+    name varchar(255) not null,
+    dark_player_id int unsigned not null,
+    light_player_id int unsigned not null,
+    primary key (id)
+);
+
+create table games (
+    id int auto_increment,
+    room_id int not null,
+    started_at datetime not null,
+    primary key (id)
+);
 
 create table turns (
     id int auto_increment,

@@ -4,11 +4,13 @@ import { firstTurn } from "../../domain/turn/turn";
 import { TurnRepositoryInterface } from "../../domain/turn/turnRepository";
 import { connectDB } from "../../infrastructure/connection";
 import { NotFoundLatestGame } from "../error/NotFoundLatestGame";
+import { RoomRepositoryInterface } from "../../domain/room/roomRepository";
 
 export class StartNewGameUseCase {
   constructor(
     private _gameRepository: GameRepositoryInterface,
-    private _turnRepository: TurnRepositoryInterface
+    private _turnRepository: TurnRepositoryInterface,
+    private _roomRepository: RoomRepositoryInterface
   ) {}
 
   async execute() {
@@ -18,9 +20,15 @@ export class StartNewGameUseCase {
     try {
       await conn.beginTransaction();
 
+      const latestRoom = await this._roomRepository.findLatest(conn);
+
+      if (latestRoom?.id === undefined) {
+        throw new Error("latestRoom.id is undefined");
+      }
+
       const game = await this._gameRepository.save(
         conn,
-        new Game(undefined, now)
+        new Game(undefined, latestRoom?.id, now)
       );
       if (!game) {
         throw new NotFoundLatestGame("Game is not found");

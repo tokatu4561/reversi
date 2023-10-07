@@ -1,10 +1,30 @@
-openapi: '3.0.3'
+openapi: "3.0.3"
 
 info:
   title: reversi
   version: 1.0.0
 
 paths:
+  /rooms:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: room1
+                yourDisc:
+                  type: integer
+                  example: 1
+      responses:
+        201:
+          description: Created
   /api/games:
     get:
       responses:
@@ -35,8 +55,13 @@ paths:
         201:
           description: Created
 
-  /api/games/latest/turns/{turnCount}:
+  /api/games/rooms/{roomId}/turns/{turnCount}:
     parameters:
+      - name: roomId
+        in: path
+        schema:
+          type: integer
+        required: true
       - name: turnCount
         in: path
         schema:
@@ -65,7 +90,7 @@ paths:
                         [0, 0, 0, 2, 1, 0, 0, 0],
                         [0, 0, 0, 0, 0, 0, 0, 0],
                         [0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0]
+                        [0, 0, 0, 0, 0, 0, 0, 0],
                       ]
                   nextDisc:
                     type: integer
