@@ -17,6 +17,7 @@ export class StartNewGameUseCase {
     const now = new Date();
 
     const conn = await connectDB();
+    let gameId: number | undefined;
     try {
       await conn.beginTransaction();
 
@@ -41,9 +42,15 @@ export class StartNewGameUseCase {
 
       await this._turnRepository.save(conn, turn);
 
+      gameId = game.id;
+
       await conn.commit();
     } finally {
       await conn.end();
     }
+
+    return {
+      gameId,
+    };
   }
 }

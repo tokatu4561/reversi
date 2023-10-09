@@ -7,7 +7,8 @@ class JoinRoomOutput {
   constructor(
     private _roomId: number,
     private _roomName: string,
-    private _yourDisc: number
+    private _yourDisc: number,
+    private _isReady: boolean = false
   ) {}
 
   get roomId() {
@@ -21,6 +22,10 @@ class JoinRoomOutput {
   get yourDisc() {
     return this._yourDisc;
   }
+
+  get isReady() {
+    return this._isReady;
+  }
 }
 
 export class JoinRoomUseCase {
@@ -29,9 +34,8 @@ export class JoinRoomUseCase {
   async execute() {
     const conn = await connectDB();
 
-    let yourDisc = Disc.Dark; // FIXME: 仮 ドメイン層に移動する
-
-    let playingRoom;
+    let yourDisc: Disc;
+    let playingRoom: Room;
 
     try {
       await conn.beginTransaction();
@@ -46,25 +50,27 @@ export class JoinRoomUseCase {
         throw new Error("room id is undefined");
       }
 
-      // まだ白が参加していないルームであれば
-      // ルームに対戦相手(白)がまだ参加していなければ、白で参加する
-      if (!room?.lightPlayerId) {
-        // 白で参加する
-        room.joinLightPlayer("lightPlayerId"); // FIXME: id,名前は仮
-        const updatedRoom = await this._roomRepository.update(conn, room);
-        let yourDisc = Disc.Light; // FIXME: 仮 ドメイン層に移動する
-        playingRoom = updatedRoom;
-      } else {
-        // 既に黒も白も参加しているルームであれば、新しいルームを作成して黒で参加する
-        // 新しいルームを作成する
-        const room = new Room(undefined, "roomName", "darkPlayerId", undefined);
-        const newRoom = await this._roomRepository.save(conn, room);
-        playingRoom = newRoom;
+      if (room.isFull()) {
+        throw new Error("room is full"); // ドメインエラーにする ドメイン層へ移動する
       }
+
+      // ルームに参加する
+      // FIXME: プレイヤーを引数に取るようにする
+      yourDisc = room.join();
+
+      const updatedRoom = await this._roomRepository.update(conn, room);
+      playingRoom = updatedRoom;
+
+      await conn.commit();
     } finally {
       await conn.end();
     }
 
-    return new JoinRoomOutput(playingRoom.id, playingRoom.name, yourDisc);
+    return new JoinRoomOutput(
+      playingRoom.id!,
+      playingRoom.name,
+      yourDisc,
+      playingRoom.isReady()
+    );
   }
 }

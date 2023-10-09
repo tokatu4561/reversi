@@ -13,8 +13,9 @@ create table players (
 create table rooms (
     id int auto_increment,
     name varchar(255) not null,
-    dark_player_id int unsigned not null,
-    light_player_id int unsigned not null,
+    -- // 作成者 プレイヤーのidにする
+    dark_player_id varchar(20),
+    light_player_id varchar(20),
     primary key (id)
 );
 

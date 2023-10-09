@@ -13,12 +13,26 @@ export class GameMySQLRepository implements GameRepositoryInterface {
       return undefined;
     }
 
-    return new Game(gameRecord.id, gameRecord.startedAt);
+    return new Game(gameRecord.id, gameRecord.roomId, gameRecord.startedAt);
+  }
+
+  async find(conn: mysql.Connection, id: number): Promise<Game | undefined> {
+    const gameRecord = await gameGateway.find(conn, id);
+
+    if (!gameRecord) {
+      return undefined;
+    }
+
+    return new Game(gameRecord.id, gameRecord.roomId, gameRecord.startedAt);
   }
 
   async save(conn: mysql.Connection, game: Game): Promise<Game> {
-    const gameRecord = await gameGateway.insert(conn, game.startedAt);
+    const gameRecord = await gameGateway.insert(
+      conn,
+      game.roomId,
+      game.startedAt
+    );
 
-    return new Game(gameRecord.id, gameRecord.startedAt);
+    return new Game(gameRecord.id, gameRecord.roomId, gameRecord.startedAt);
   }
 }

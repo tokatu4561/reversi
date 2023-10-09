@@ -14,21 +14,21 @@ export class FindLastGameQueryService implements FindLastGameQueryInterface {
             g.id,
             sum(case when m.disc = 1 then 1 else 0 end) as dark_count,
             sum(case when m.disc = 2 then 1 else 0 end) as light_count,
-            gr.winner_disc,
-            g.started_at,
-            gr.end_at
+            max(gr.winner_id),
+            max(g.started_at),
+            max(gr.end_at)
         FROM
-            game g
+            games g
         LEFT JOIN
-            game_result gr
+            game_results gr
         ON
             g.id = gr.game_id
         LEFT JOIN
-            turn t
+            turns t
         ON
             g.id = t.game_id
         Left JOIN
-            move m
+            moves m
         ON
             t.id = m.turn_id
         GROUP BY
@@ -51,7 +51,7 @@ export class FindLastGameQueryService implements FindLastGameQueryInterface {
         record["id"],
         record["dark_count"],
         record["light_count"],
-        record["winner_disc"],
+        record["winner_id"],
         record["started_at"],
         record["end_at"]
       );

@@ -39,13 +39,14 @@ export class FindLatestGameTurnByTurnCountUseCase {
   ) {}
 
   async execute(
+    gameId: number,
     turnCount: number
   ): Promise<FindLatestGameTurnByTurnCountOutput> {
     const conn = await connectDB();
     try {
-      const game = await this._gameRepository.findLatest(conn);
+      const game = await this._gameRepository.find(conn, gameId);
       if (!game) {
-        throw new NotFoundLatestGame("Latest game not found");
+        throw new NotFoundLatestGame("game not found");
       }
       if (!game.id) {
         throw new Error("game.id not exist");

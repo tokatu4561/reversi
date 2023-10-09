@@ -29,11 +29,13 @@ const registerTurnUseCase = new RegisterTurnUseCase(
 );
 
 turnRouter.get(
-  "/api/games/latest/turns/:turnCount",
+  "/api/games/:gameId/turns/:turnCount",
   async (req, res: express.Response<TurnGatResponseBody>) => {
+    const gameId = parseInt(req.params.gameId);
     const turnCount = parseInt(req.params.turnCount);
 
     const output = await findLatestGameTurnByTurnCountUseCase.execute(
+      gameId,
       turnCount
     );
 

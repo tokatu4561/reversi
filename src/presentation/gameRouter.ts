@@ -2,6 +2,7 @@ import express from "express";
 import { StartNewGameUseCase } from "../application/usecase/startNewGameUseCase";
 import { GameMySQLRepository } from "../infrastructure/repository/game/gameMySQLRepository";
 import { TurnMySQLRepository } from "../infrastructure/repository/turn/turnMySQLRepository";
+import { RoomMySQLRepository } from "../infrastructure/repository/room/roomMySQLRepository";
 import { FindLastGamesUseCase } from "../application/usecase/findLastGamesUseCase";
 import { FindLastGameQueryService } from "../infrastructure/query/findLastGameQueryService";
 
@@ -10,7 +11,8 @@ export const gameRouter = express.Router();
 // FIXME: これはDIコンテナでやるべき
 const startNewGameUseCase = new StartNewGameUseCase(
   new GameMySQLRepository(),
-  new TurnMySQLRepository()
+  new TurnMySQLRepository(),
+  new RoomMySQLRepository()
 );
 
 const findLastGamesUseCase = new FindLastGamesUseCase(
@@ -46,7 +48,12 @@ gameRouter.get("/api/games", async (req, res) => {
 });
 
 gameRouter.post("/api/games", async (req, res) => {
-  await startNewGameUseCase.execute();
+  const output = await startNewGameUseCase.execute();
 
-  res.status(201).end();
+  res
+    .status(201)
+    .json({
+      gameId: output.gameId,
+    })
+    .end();
 });

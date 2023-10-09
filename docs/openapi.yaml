@@ -55,9 +55,9 @@ paths:
         201:
           description: Created
 
-  /api/games/rooms/{roomId}/turns/{turnCount}:
+  /api/games/{gameId}/turns/{turnCount}:
     parameters:
-      - name: roomId
+      - name: gameId
         in: path
         schema:
           type: integer

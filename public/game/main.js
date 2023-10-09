@@ -10,8 +10,8 @@ const boardElement = document.getElementById("board");
 const nextDiscMessageElement = document.getElementById("next-disc-message");
 const warningMessageElement = document.getElementById("warning-message");
 
-async function showBoard(turnCount, previousDisc) {
-  const response = await fetch(`/api/games/latest/turns/${turnCount}`);
+async function showBoard(gameId, myDisc, turnCount, previousDisc = null) {
+  const response = await fetch(`/api/games/${gameId}/turns/${turnCount}`);
   const responseBody = await response.json();
   const board = responseBody.board;
   const nextDisc = responseBody.nextDisc;
@@ -51,7 +51,7 @@ async function showBoard(turnCount, previousDisc) {
             y
           );
           if (registerTurnResponse.ok) {
-            await showBoard(nextTurnCount, nextDisc);
+            await showBoard(gameId, nextTurnCount, nextDisc);
           }
         });
       }
@@ -103,9 +103,11 @@ function showNextDiscMessage(nextDisc) {
 }
 
 async function registerGame() {
-  await fetch("/api/games", {
+  const result = await fetch("/api/games", {
     method: "POST",
-  });
+  }).then((response) => response.json());
+
+  return result.gameId;
 }
 
 // ターン(盤面)の状態を登録
@@ -128,9 +130,65 @@ async function registerTurn(turnCount, disc, x, y) {
   });
 }
 
+async function findLatestRoom() {
+  const result = await fetch("/api/rooms", {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then((response) => response.json());
+
+  return {
+    roomId: result.roomId,
+    lightPlayer: result.lightPlayer,
+    darkPlayer: result.darkPlayer,
+  };
+}
+
+async function createNewRoom() {
+  const result = await fetch("/api/rooms", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then((response) => response.json());
+
+  return result.roomId;
+}
+
+async function joinNewRoom(roomId) {
+  const result = await fetch(`/api/rooms/${roomId}/join`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then((response) => response.json());
+
+  return {
+    roomId: result.roomId,
+    roomName: result.roomName,
+    yourDisc: result.yourDisc,
+    isReady: result.isReady,
+  };
+}
+
 async function main() {
-  await registerGame();
-  await showBoard(0);
+  const room = await findLatestRoom();
+  let roomId = null;
+
+  // 白か黒かどちらか参加していればそのルームに入る どちらかがいる部屋に入る
+  // FIXME: 汚い、リアルタイム通信をしたいだけなので 一旦これでok
+  if (!!room.darkPlayer || !!room.lightPlayer) {
+    roomId = room.roomId;
+  } else {
+    roomId = await createNewRoom();
+  }
+
+  const roomInfo = await joinNewRoom(roomId);
+
+  if (roomInfo.isReady) {
+    const gameId = await registerGame();
+    await showBoard(gameId, roomInfo.yourDisc, 0);
+  }
 }
 
 main();

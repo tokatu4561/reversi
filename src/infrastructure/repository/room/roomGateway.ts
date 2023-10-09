@@ -10,7 +10,7 @@ export class RoomGateway {
     const room = roomSelectResult[0][0];
 
     if (!room) {
-      throw new Error("対戦が見つかりませんでした");
+      throw new Error("ルームがが見つかりませんでした");
     }
 
     return new RoomRecord(
@@ -24,12 +24,12 @@ export class RoomGateway {
   async insert(
     conn: mysql.Connection,
     name: string,
-    dark_player_id: string,
+    dark_player_id: string | undefined,
     light_player_id: string | undefined
   ): Promise<RoomRecord> {
     const roomInsertResult = await conn.execute<mysql.ResultSetHeader>(
-      "INSERT INTO rooms (name, dark_player_id, light_player_id) VALUES (?)",
-      [name]
+      "INSERT INTO rooms (name, dark_player_id, light_player_id) VALUES (?, ?, ?)",
+      [name, dark_player_id ?? null, light_player_id ?? null]
     );
 
     const roomId = roomInsertResult[0].insertId;
@@ -41,12 +41,12 @@ export class RoomGateway {
     conn: mysql.Connection,
     id: number,
     name: string,
-    dark_player_id: string,
+    dark_player_id: string | undefined,
     light_player_id: string | undefined
   ): Promise<RoomRecord> {
     await conn.execute(
-      "UPDATE rooms SET name = ?, light_player_id = ? WHERE id = ?",
-      [name, light_player_id, id]
+      "UPDATE rooms SET name = ?, dark_player_id = ?, light_player_id = ? WHERE id = ?",
+      [name, dark_player_id, light_player_id, id]
     );
 
     return new RoomRecord(id, name, dark_player_id, light_player_id);

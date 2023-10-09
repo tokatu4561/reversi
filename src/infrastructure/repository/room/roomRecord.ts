@@ -2,7 +2,7 @@ export class RoomRecord {
   constructor(
     private _id: number,
     private _name: string,
-    private _darkPlayerId: string,
+    private _darkPlayerId: string | undefined,
     private _lightPlayerId: string | undefined
   ) {}
 
