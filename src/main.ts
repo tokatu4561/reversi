@@ -6,6 +6,7 @@ import { turnRouter } from "./presentation/turnRouter";
 import { DomainError } from "./domain/error/DomainError";
 import { AppError } from "./application/error/AppError";
 import { NotFoundLatestGame } from "./application/error/NotFoundLatestGame";
+import { roomRouter } from "./presentation/roomRouter";
 
 const PORT = 3000;
 
@@ -16,6 +17,7 @@ app.use(express.static("public", { extensions: ["html"] }));
 app.use(express.json());
 
 app.use(gameRouter);
+app.use(roomRouter);
 app.use(turnRouter);
 
 app.use(
