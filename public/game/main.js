@@ -9,7 +9,10 @@ const WINNER_LIGHT = 2;
 const boardElement = document.getElementById("board");
 const nextDiscMessageElement = document.getElementById("next-disc-message");
 const warningMessageElement = document.getElementById("warning-message");
+const waitingMessageElement = document.getElementById("waiting-message");
+const yourDiscElement = document.getElementById("your-disc");
 
+// FIXME: グローバル変数はダメ 手抜き
 let myDisc;
 
 const socket = io();
@@ -20,6 +23,8 @@ socket.on("turnRegistered", function (turnRegisteredEvent) {
 
 socket.on("startGame", function (gameId) {
   showBoard(gameId, 0);
+  switchWaitingMessage(true);
+  showYourDisc(myDisc);
 });
 
 async function showBoard(gameId, turnCount, previousDisc = null) {
@@ -88,6 +93,10 @@ function discToString(disc) {
   return disc === DARK ? "黒" : "白";
 }
 
+function showYourDisc(disc) {
+  yourDiscElement.innerText = `あなたは${discToString(disc)}です`;
+}
+
 function showWarningMessage(previousDisc, nextDisc, winnerDisc) {
   const message = warningMessage(previousDisc, nextDisc, winnerDisc);
 
@@ -122,6 +131,14 @@ function showNextDiscMessage(nextDisc) {
     nextDiscMessageElement.innerText = `次は${discToString(nextDisc)}の番です`;
   } else {
     nextDiscMessageElement.innerText = "";
+  }
+}
+
+function switchWaitingMessage(isReady) {
+  if (isReady) {
+    waitingMessageElement.style.display = "none";
+  } else {
+    waitingMessageElement.style.display = "block";
   }
 }
 
@@ -208,10 +225,14 @@ async function main() {
 
   const roomInfo = await joinNewRoom(roomId);
 
+  myDisc = roomInfo.yourDisc; // FIXME: グーローバるに宣言しないで済むようにしたい
+  console.log("myDisc", myDisc);
+
   if (roomInfo.isReady) {
     const gameId = await registerGame();
-    myDisc = roomInfo.yourDisc; // FIXME: グーローバるに宣言しないで済むようにしたい
     socket.emit("startGame", gameId);
+  } else {
+    switchWaitingMessage(false);
   }
 }
 
