@@ -10,7 +10,19 @@ const boardElement = document.getElementById("board");
 const nextDiscMessageElement = document.getElementById("next-disc-message");
 const warningMessageElement = document.getElementById("warning-message");
 
-async function showBoard(gameId, myDisc, turnCount, previousDisc = null) {
+let myDisc;
+
+const socket = io();
+
+socket.on("turnRegistered", function (turnRegisteredEvent) {
+  showBoard(turnRegisteredEvent.gameId, turnRegisteredEvent.turnCount);
+});
+
+socket.on("startGame", function (gameId) {
+  showBoard(gameId, 0);
+});
+
+async function showBoard(gameId, turnCount, previousDisc = null) {
   const response = await fetch(`/api/games/${gameId}/turns/${turnCount}`);
   const responseBody = await response.json();
   const board = responseBody.board;
@@ -41,24 +53,35 @@ async function showBoard(gameId, myDisc, turnCount, previousDisc = null) {
 
         squareElement.appendChild(stoneElement);
       } else {
-        // 置ける場所にはクリックイベントを設定
-        squareElement.addEventListener("click", async () => {
-          const nextTurnCount = turnCount + 1;
-          const registerTurnResponse = await registerTurn(
-            nextTurnCount,
-            nextDisc,
-            x,
-            y
-          );
-          if (registerTurnResponse.ok) {
-            await showBoard(gameId, nextTurnCount, nextDisc);
-          }
-        });
+        if (equalDisc(myDisc, nextDisc)) {
+          // 置ける場所にはクリックイベントを設定
+          squareElement.addEventListener("click", async () => {
+            const nextTurnCount = turnCount + 1; //TODO: showBoardの引数から
+            const registerTurnResponse = await registerTurn(
+              nextTurnCount,
+              nextDisc,
+              x,
+              y
+            );
+            if (registerTurnResponse.ok) {
+              // await showBoard(gameId, nextTurnCount, nextDisc);
+              // TODO: サーバーへ置いたことを通知
+              socket.emit("turnRegistered", {
+                gameId,
+                turnCount: nextTurnCount,
+              });
+            }
+          });
+        }
       }
 
       boardElement.appendChild(squareElement);
     });
   });
+}
+
+function equalDisc(disc1, disc2) {
+  return disc1 === disc2;
 }
 
 function discToString(disc) {
@@ -177,7 +200,7 @@ async function main() {
 
   // 白か黒かどちらか参加していればそのルームに入る どちらかがいる部屋に入る
   // FIXME: 汚い、リアルタイム通信をしたいだけなので 一旦これでok
-  if (!!room.darkPlayer || !!room.lightPlayer) {
+  if (!!room.darkPlayer && !room.lightPlayer) {
     roomId = room.roomId;
   } else {
     roomId = await createNewRoom();
@@ -187,7 +210,8 @@ async function main() {
 
   if (roomInfo.isReady) {
     const gameId = await registerGame();
-    await showBoard(gameId, roomInfo.yourDisc, 0);
+    myDisc = roomInfo.yourDisc; // FIXME: グーローバるに宣言しないで済むようにしたい
+    socket.emit("startGame", gameId);
   }
 }
 

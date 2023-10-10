@@ -1,6 +1,8 @@
 import express from "express";
 import morgan from "morgan";
 import "express-async-errors";
+import http from "http";
+import { Server } from "socket.io";
 import { gameRouter } from "./presentation/gameRouter";
 import { turnRouter } from "./presentation/turnRouter";
 import { DomainError } from "./domain/error/DomainError";
@@ -19,6 +21,9 @@ app.use(express.json());
 app.use(gameRouter);
 app.use(roomRouter);
 app.use(turnRouter);
+
+const server: http.Server = http.createServer(app);
+const io = new Server(server);
 
 app.use(
   (
@@ -50,6 +55,22 @@ app.use(
   }
 );
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
+});
+
+// 接続したユーザーに対するイベント
+io.on("connection", (socket) => {
+  console.log("connected!!!");
+  // chat messageイベントを受信
+  socket.on("turnRegistered", ({ gameId, turnCount }) => {
+    // ユーザーにchat messageイベントでメッセージを送信
+    io.emit("turnRegistered", { gameId, turnCount });
+  });
+
+  socket.on("startGame", function (gameId) {
+    io.emit("startGame", gameId);
+  });
+
+  socket.on("disconnect", () => {});
 });
